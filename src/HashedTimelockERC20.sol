@@ -74,4 +74,12 @@ contract HashedTimelockERC20 {
 
         emit LogLockRefunded(_lockId);
     }
+
+    receive() external payable {
+        revert("Send ETH via confirmParticipation only");
+    }
+
+    fallback() external payable {
+        revert("Fallback not supported");
+    }
 }

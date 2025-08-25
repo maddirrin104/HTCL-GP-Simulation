@@ -161,7 +161,6 @@ contract HashedTimelockERC20_GP is ReentrancyGuard {
         return block.timestamp <= lk.depositWindowEnd && !lk.depositConfirmed && !lk.refunded && !lk.claimed;
     }
 
-    /// @notice Fallback / receive to reject plain ETH sends
     receive() external payable {
         revert("Send ETH via confirmParticipation only");
     }

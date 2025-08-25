@@ -155,4 +155,12 @@ contract HashedTimelockERC20_GPz is ReentrancyGuard {
             emit LockRefunded(_lockId, false);
         }
     }
+
+    receive() external payable {
+        revert("Send ETH via confirmParticipation only");
+    }
+
+    fallback() external payable {
+        revert("Fallback not supported");
+    }
 }

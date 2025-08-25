@@ -12,7 +12,7 @@ contract HashedTimelockERC20_LinearPenaltyTest is Test {
     TestToken token;
 
     address alice = address(0xA11CE);
-    address bob   = address(0xB0B);
+    address bob = address(0xB0B);
 
     uint256 constant AMOUNT = 1000 ether;
     uint256 constant DEPOSIT = 1 ether;
@@ -44,15 +44,7 @@ contract HashedTimelockERC20_LinearPenaltyTest is Test {
 
         // create lock
         lockContract.createLock(
-            bob,
-            address(token),
-            AMOUNT,
-            hashlock,
-            TIMELOCK,
-            TIMEBASED,
-            PENALTY_INTERVAL,
-            DEPOSIT,
-            DEPOSIT_WINDOW
+            bob, address(token), AMOUNT, hashlock, TIMELOCK, TIMEBASED, PENALTY_INTERVAL, DEPOSIT, DEPOSIT_WINDOW
         );
         vm.stopPrank();
     }
@@ -68,7 +60,7 @@ contract HashedTimelockERC20_LinearPenaltyTest is Test {
         // Bob should receive all tokens
         assertEq(token.balanceOf(bob), AMOUNT);
         // Deposit refunded fully (since penalty=0)
-        assertEq(bob.balance, 10 ether); 
+        assertEq(bob.balance, 10 ether);
         vm.stopPrank();
     }
 
@@ -84,7 +76,7 @@ contract HashedTimelockERC20_LinearPenaltyTest is Test {
 
         // Penalty likely = 0 (rounding down)
         assertEq(token.balanceOf(bob), AMOUNT);
-        assertEq(bob.balance, 10 ether); 
+        assertEq(bob.balance, 10 ether);
         vm.stopPrank();
     }
 
@@ -94,7 +86,7 @@ contract HashedTimelockERC20_LinearPenaltyTest is Test {
         lockContract.confirmParticipation{value: DEPOSIT}(hashlock);
 
         // warp halfway through timeBased
-        vm.warp(block.timestamp + TIMELOCK - (TIMEBASED/2));
+        vm.warp(block.timestamp + TIMELOCK - (TIMEBASED / 2));
 
         uint256 balAliceBefore = alice.balance;
         uint256 balBobBefore = bob.balance;
@@ -122,7 +114,7 @@ contract HashedTimelockERC20_LinearPenaltyTest is Test {
 
         uint256 balAliceAfter = alice.balance;
         // Penalty almost = deposit
-        assertApproxEqAbs(balAliceAfter - balAliceBefore, DEPOSIT, 1e14); 
+        assertApproxEqAbs(balAliceAfter - balAliceBefore, DEPOSIT, 1e14);
         vm.stopPrank();
     }
 
@@ -135,15 +127,7 @@ contract HashedTimelockERC20_LinearPenaltyTest is Test {
         vm.startPrank(alice);
         token.approve(address(lockContract), AMOUNT);
         lockContract.createLock(
-            bob,
-            address(token),
-            AMOUNT,
-            hashlock,
-            TIMELOCK,
-            TIMEBASED,
-            PENALTY_INTERVAL,
-            DEPOSIT,
-            DEPOSIT_WINDOW
+            bob, address(token), AMOUNT, hashlock, TIMELOCK, TIMEBASED, PENALTY_INTERVAL, DEPOSIT, DEPOSIT_WINDOW
         );
         vm.stopPrank();
 

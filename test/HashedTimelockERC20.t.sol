@@ -156,57 +156,57 @@ contract HashedTimelockERC20Test is Test {
     }
 
     // thử lại attack với các timelock khác nhau
-    // function testGriefingAttackWithDifferentTimelocks() public {
-    //     address alice = address(0xA11CE);
-    //     address bob   = address(0xB0B);
+    function testGriefingAttackWithDifferentTimelocks() public {
+        address alice = address(0xA11CE);
+        address bob   = address(0xB0B);
 
-    //     uint256 amount = 100 ether;
-    //     uint256[] memory timelocks = new uint256[](3);
+        uint256 amount = 100 ether;
+        uint256[] memory timelocks = new uint256[](3);
 
-    //     timelocks[0] = 1 hours;
-    //     timelocks[1] = 12 hours;
-    //     timelocks[2] = 24 hours;
+        timelocks[0] = 1 hours;
+        timelocks[1] = 12 hours;
+        timelocks[2] = 24 hours;
 
-    //     // Cấp token cho Alice
-    //     token.transfer(alice, amount * timelocks.length);
+        // Cấp token cho Alice
+        token.transfer(alice, amount * timelocks.length);
 
-    //     for (uint i = 0; i < timelocks.length; i++) {
-    //         uint256 tl = timelocks[i];
+        for (uint i = 0; i < timelocks.length; i++) {
+            uint256 tl = timelocks[i];
 
-    //         // Reset lại preimage/hashlock cho mỗi vòng
-    //         bytes memory preimage = abi.encodePacked("attack-secret", i);
-    //         bytes32 hashlock = sha256(preimage);
+            // Reset lại preimage/hashlock cho mỗi vòng
+            bytes memory preimage = abi.encodePacked("attack-secret", i);
+            bytes32 hashlock = sha256(preimage);
 
-    //         // Alice lock token cho Bob
-    //         vm.startPrank(alice);
-    //         token.approve(address(htlc), amount);
-    //         uint256 startTime = block.timestamp;
-    //         htlc.lock(bob, address(token), amount, hashlock, tl);
-    //         vm.stopPrank();
+            // Alice lock token cho Bob
+            vm.startPrank(alice);
+            token.approve(address(htlc), amount);
+            uint256 startTime = block.timestamp;
+            htlc.lock(bob, address(token), amount, hashlock, tl);
+            vm.stopPrank();
 
-    //         // Bob KHÔNG claim
+            // Bob KHÔNG claim
 
-    //         // Alice thử refund sớm -> revert
-    //         vm.startPrank(alice);
-    //         vm.expectRevert();
-    //         htlc.refund(hashlock);
-    //         vm.stopPrank();
+            // Alice thử refund sớm -> revert
+            vm.startPrank(alice);
+            vm.expectRevert();
+            htlc.refund(hashlock);
+            vm.stopPrank();
 
-    //         // Tiến tới thời điểm unlock
-    //         vm.warp(startTime + tl);
+            // Tiến tới thời điểm unlock
+            vm.warp(startTime + tl);
 
-    //         // Alice refund thành công
-    //         vm.startPrank(alice);
-    //         htlc.refund(hashlock);
-    //         vm.stopPrank();
+            // Alice refund thành công
+            vm.startPrank(alice);
+            htlc.refund(hashlock);
+            vm.stopPrank();
 
-    //         uint256 elapsed = block.timestamp - startTime;
+            uint256 elapsed = block.timestamp - startTime;
 
-    //         console.log("Timelock = %s seconds", tl);
-    //         console.log("Alice's tokens were locked for %s seconds", elapsed);
+            console.log("Timelock = %s seconds", tl);
+            console.log("Alice's tokens were locked for %s seconds", elapsed);
 
-    //         // Xác minh Alice nhận lại đủ token
-    //         assertEq(token.balanceOf(alice), amount * (timelocks.length));
-    //     }
-    // }
+            // Xác minh Alice nhận lại đủ token
+            assertEq(token.balanceOf(alice), amount * (timelocks.length));
+        }
+    }
 }

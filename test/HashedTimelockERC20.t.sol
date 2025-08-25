@@ -4,18 +4,12 @@ pragma solidity ^0.8.13;
 import {Test} from "forge-std/Test.sol";
 import {HashedTimelockERC20} from "../src/HashedTimelockERC20.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "forge-std/console.sol"; 
-
-/// @dev Mock ERC20 token để test
-contract MockToken is ERC20 {
-    constructor() ERC20("MockToken", "MTK") {
-        _mint(msg.sender, 1_000_000 ether);
-    }
-}
+import "forge-std/console.sol";
+import "../src/TestToken.sol";
 
 contract HashedTimelockERC20Test is Test {
     HashedTimelockERC20 htlc;
-    MockToken token;
+    TestToken token;
     address sender = address(0x1);
     address receiver = address(0x2);
     bytes32 hashlock;
@@ -25,7 +19,7 @@ contract HashedTimelockERC20Test is Test {
 
     function setUp() public {
         htlc = new HashedTimelockERC20();
-        token = new MockToken();
+        token = new TestToken();
 
         // cấp token cho sender
         token.transfer(sender, amount);
@@ -62,7 +56,7 @@ contract HashedTimelockERC20Test is Test {
         vm.startPrank(receiver);
         htlc.claim(hashlock, preimage);
         assertEq(token.balanceOf(receiver), amount);
-        (, , , , , bool claimed,) = htlc.locks(hashlock);
+        (,,,,, bool claimed,) = htlc.locks(hashlock);
         assertTrue(claimed);
         vm.stopPrank();
     }
@@ -79,7 +73,7 @@ contract HashedTimelockERC20Test is Test {
         vm.startPrank(sender);
         htlc.refund(hashlock);
         assertEq(token.balanceOf(sender), amount);
-        (, , , , , , bool refunded) = htlc.locks(hashlock);
+        (,,,,,, bool refunded) = htlc.locks(hashlock);
         assertTrue(refunded);
         vm.stopPrank();
     }
@@ -118,7 +112,7 @@ contract HashedTimelockERC20Test is Test {
     function testGriefingAttack() public {
         // Khởi tạo nhân vật
         address alice = address(0xA11CE);
-        address bob   = address(0xB0B);
+        address bob = address(0xB0B);
 
         uint256 amount = 50 ether;
         uint256 timelock = 3 days;
@@ -141,7 +135,7 @@ contract HashedTimelockERC20Test is Test {
 
         // Fast forward: thử refund sớm sẽ bị revert
         vm.startPrank(alice);
-        vm.expectRevert(); 
+        vm.expectRevert();
         htlc.refund(hashlock);
         vm.stopPrank();
 

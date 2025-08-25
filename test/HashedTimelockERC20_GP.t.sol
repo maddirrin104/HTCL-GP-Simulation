@@ -1,21 +1,17 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "../src/HashedTimelockERC20_GP.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-
-contract TestToken is ERC20 {
-    constructor() ERC20("TestToken", "TT") {
-        _mint(msg.sender, 1_000_000 ether);
-    }
-}
+import "../src/TestToken.sol";
+import "forge-std/console.sol";
 
 contract HashedTimelockERC20_GP_Test is Test {
     HashedTimelockERC20_GP htlc;
     TestToken token;
     address alice = address(0xA1);
-    address bob   = address(0xB0);
+    address bob = address(0xB0);
     address carol = address(0xC0);
 
     uint256 constant AMOUNT = 100 ether;
@@ -45,15 +41,7 @@ contract HashedTimelockERC20_GP_Test is Test {
     function createLock() internal returns (bytes32 lockId) {
         vm.startPrank(alice);
         token.approve(address(htlc), AMOUNT);
-        lockId = htlc.createLock(
-            bob,
-            address(token),
-            AMOUNT,
-            hashlock,
-            TIMELOCK,
-            DEPOSIT,
-            DEPOSIT_WINDOW
-        );
+        lockId = htlc.createLock(bob, address(token), AMOUNT, hashlock, TIMELOCK, DEPOSIT, DEPOSIT_WINDOW);
         vm.stopPrank();
     }
 

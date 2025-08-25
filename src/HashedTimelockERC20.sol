@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
+
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract HashedTimelockERC20 {
@@ -16,22 +17,15 @@ contract HashedTimelockERC20 {
     mapping(bytes32 => Lock) public locks;
 
     event LogLockCreated(
-        bytes32 indexed lockId,
-        address indexed sender,
-        address indexed receiver,
-        address tokenContract,
-        uint256 amount
+        bytes32 indexed lockId, address indexed sender, address indexed receiver, address tokenContract, uint256 amount
     );
     event LogLockClaimed(bytes32 indexed lockId);
     event LogLockRefunded(bytes32 indexed lockId);
 
-    function lock(
-        address _receiver,
-        address _tokenContract,
-        uint _amount,
-        bytes32 _hashlock,
-        uint256 _timelock
-    ) public returns (bytes32 lockId) {
+    function lock(address _receiver, address _tokenContract, uint256 _amount, bytes32 _hashlock, uint256 _timelock)
+        public
+        returns (bytes32 lockId)
+    {
         require(locks[_hashlock].sender == address(0), "Lock already exists");
         require(_amount > 0, "Amount must be greater than 0");
 
@@ -63,10 +57,7 @@ contract HashedTimelockERC20 {
 
         // update trước để tránh re-entrancy
         locked.claimed = true;
-        require(
-            IERC20(locked.tokenContract).transfer(locked.receiver, locked.amount),
-            "Token transfer failed"
-        );
+        require(IERC20(locked.tokenContract).transfer(locked.receiver, locked.amount), "Token transfer failed");
 
         emit LogLockClaimed(_lockId);
     }
@@ -79,10 +70,7 @@ contract HashedTimelockERC20 {
         require(block.timestamp >= locked.unlockTime);
 
         locked.refunded = true;
-        require(
-            IERC20(locked.tokenContract).transfer(locked.sender, locked.amount),
-            "Token transfer failed"
-        );
+        require(IERC20(locked.tokenContract).transfer(locked.sender, locked.amount), "Token transfer failed");
 
         emit LogLockRefunded(_lockId);
     }

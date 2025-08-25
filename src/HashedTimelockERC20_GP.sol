@@ -8,17 +8,17 @@ contract HashedTimelockERC20_GP is ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     struct Lock {
-        address sender;          // Alice
-        address receiver;        // Bob
-        address tokenContract;   // ERC20 token
-        uint256 amount;          // ERC20 amount locked
-        uint256 unlockTime;      // timestamp after which sender can refund (if deposit posted: penalty to sender)
+        address sender; // Alice
+        address receiver; // Bob
+        address tokenContract; // ERC20 token
+        uint256 amount; // ERC20 amount locked
+        uint256 unlockTime; // timestamp after which sender can refund (if deposit posted: penalty to sender)
         uint256 depositRequired; // ETH amount Bob must deposit to participate
-        uint256 depositPaid;     // ETH amount actually paid (0 or depositRequired)
-        uint256 depositWindowEnd;// timestamp until which Bob can post deposit (opt-in window)
-        bool depositConfirmed;   // whether Bob has posted deposit
-        bool claimed;            // whether token has been claimed
-        bool refunded;           // whether token has been refunded to sender
+        uint256 depositPaid; // ETH amount actually paid (0 or depositRequired)
+        uint256 depositWindowEnd; // timestamp until which Bob can post deposit (opt-in window)
+        bool depositConfirmed; // whether Bob has posted deposit
+        bool claimed; // whether token has been claimed
+        bool refunded; // whether token has been refunded to sender
     }
 
     mapping(bytes32 => Lock) public locks;
@@ -72,7 +72,9 @@ contract HashedTimelockERC20_GP is ReentrancyGuard {
         // transfer tokens from Alice into contract (Alice must approve first)
         IERC20(_tokenContract).safeTransferFrom(msg.sender, address(this), _amount);
 
-        emit LockCreated(_hashlock, msg.sender, _receiver, _tokenContract, _amount, _unlockTime, _depositRequired, _depositWindowEnd);
+        emit LockCreated(
+            _hashlock, msg.sender, _receiver, _tokenContract, _amount, _unlockTime, _depositRequired, _depositWindowEnd
+        );
         return _hashlock;
     }
 
@@ -110,7 +112,7 @@ contract HashedTimelockERC20_GP is ReentrancyGuard {
         if (depositBack > 0) {
             // zero the stored deposit first to avoid re-entrancy issues
             lk.depositPaid = 0;
-            (bool sent, ) = payable(lk.receiver).call{value: depositBack}("");
+            (bool sent,) = payable(lk.receiver).call{value: depositBack}("");
             require(sent, "Refund deposit failed");
         }
 
@@ -146,7 +148,7 @@ contract HashedTimelockERC20_GP is ReentrancyGuard {
         if (penalty > 0) {
             // zero stored deposit first
             lk.depositPaid = 0;
-            (bool sent, ) = payable(lk.sender).call{value: penalty}("");
+            (bool sent,) = payable(lk.sender).call{value: penalty}("");
             require(sent, "Penalty transfer failed");
         }
 

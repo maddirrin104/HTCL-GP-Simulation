@@ -158,7 +158,7 @@ contract HashedTimelockERC20Test is Test {
     // thử lại attack với các timelock khác nhau
     function testGriefingAttackWithDifferentTimelocks() public {
         address alice = address(0xA11CE);
-        address bob   = address(0xB0B);
+        address bob = address(0xB0B);
 
         uint256 amount = 100 ether;
         uint256[] memory timelocks = new uint256[](3);
@@ -170,7 +170,7 @@ contract HashedTimelockERC20Test is Test {
         // Cấp token cho Alice
         token.transfer(alice, amount * timelocks.length);
 
-        for (uint i = 0; i < timelocks.length; i++) {
+        for (uint256 i = 0; i < timelocks.length; i++) {
             uint256 tl = timelocks[i];
 
             // Reset lại preimage/hashlock cho mỗi vòng

@@ -10,7 +10,7 @@ contract HashedTimelockERC20_GP is ReentrancyGuard {
     struct Lock {
         address sender; // Alice
         address receiver; // Bob
-        address tokenContract; 
+        address tokenContract;
         uint256 amount;
         uint256 unlockTime;
         uint256 depositRequired;

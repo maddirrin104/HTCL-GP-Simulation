@@ -10,7 +10,7 @@ contract HashedTimelockERC20_LinearPenalty is ReentrancyGuard {
     struct Lock {
         address sender; // Alice
         address receiver; // Bob
-        address tokenContract; 
+        address tokenContract;
         uint256 amount;
         uint256 unlockTime;
         uint256 timeBased;
@@ -85,7 +85,16 @@ contract HashedTimelockERC20_LinearPenalty is ReentrancyGuard {
         IERC20(_tokenContract).safeTransferFrom(msg.sender, address(this), _amount);
 
         emit LockCreated(
-            _hashlock, msg.sender, _receiver, _tokenContract, _amount, _unlockTime, _timeBased, _penaltyInterval, _depositRequired, _depositWindowEnd
+            _hashlock,
+            msg.sender,
+            _receiver,
+            _tokenContract,
+            _amount,
+            _unlockTime,
+            _timeBased,
+            _penaltyInterval,
+            _depositRequired,
+            _depositWindowEnd
         );
         return _hashlock;
     }
@@ -141,13 +150,13 @@ contract HashedTimelockERC20_LinearPenalty is ReentrancyGuard {
 
         // pay penalty to sender immediately if >0
         if (penalty > 0) {
-            (bool sentP, ) = payable(lk.sender).call{value: penalty}("");
+            (bool sentP,) = payable(lk.sender).call{value: penalty}("");
             require(sentP, "Pay penalty failed");
         }
 
         // refund the remaining deposit (if any) to receiver
         if (depositBack > 0) {
-            (bool sentR, ) = payable(lk.receiver).call{value: depositBack}("");
+            (bool sentR,) = payable(lk.receiver).call{value: depositBack}("");
             require(sentR, "Refund deposit failed");
         }
 

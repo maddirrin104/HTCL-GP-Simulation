@@ -11,9 +11,9 @@ contract HashedTimelockERC20_GPz is ReentrancyGuard {
     struct Lock {
         address sender; // Alice
         address receiver; // Bob
-        address tokenContract; 
-        uint256 amount; 
-        uint256 unlockTime; 
+        address tokenContract;
+        uint256 amount;
+        uint256 unlockTime;
         bool claimed;
         bool refunded;
         // GPζ params

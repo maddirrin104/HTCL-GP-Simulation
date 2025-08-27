@@ -35,6 +35,13 @@ contract HashedTimelockERC20Test is Test {
 
         bytes32 lockId = htlc.lock(receiver, address(token), amount, hashlock, timelock);
 
+        console.log("== Lock Created ==");
+        console.log("LockId:", uint256(lockId));
+        console.log("Sender:", sender);
+        console.log("Receiver:", receiver);
+        console.log("Amount:", amount);
+        console.log("Timelock:", timelock);
+
         assertEq(lockId, hashlock);
         (address _sender, address _receiver,, uint256 _amount,, bool claimed, bool refunded) = htlc.locks(lockId);
         assertEq(_sender, sender);
@@ -54,7 +61,15 @@ contract HashedTimelockERC20Test is Test {
 
         // claim
         vm.startPrank(receiver);
+        uint256 balBefore = token.balanceOf(receiver);
+        console.log("Receiver balance before claim:", balBefore);
+
         htlc.claim(hashlock, preimage);
+
+        uint256 balAfter = token.balanceOf(receiver);
+        console.log("Preimage used:", string(preimage));
+        console.log("Receiver balance after claim:", balAfter);
+
         assertEq(token.balanceOf(receiver), amount);
         (,,,,, bool claimed,) = htlc.locks(hashlock);
         assertTrue(claimed);
@@ -71,8 +86,16 @@ contract HashedTimelockERC20Test is Test {
         vm.warp(block.timestamp + timelock + 1);
 
         vm.startPrank(sender);
+        uint256 balBefore = token.balanceOf(sender);
         htlc.refund(hashlock);
-        assertEq(token.balanceOf(sender), amount);
+        uint256 balAfter = token.balanceOf(sender);
+
+        console.log("Refund successful!");
+        console.log("Balance before:", balBefore);
+        console.log("Balance after:", balAfter);
+
+        // assertEq(token.balanceOf(sender), amount);
+        assertEq(balAfter - balBefore, amount);
         (,,,,,, bool refunded) = htlc.locks(hashlock);
         assertTrue(refunded);
         vm.stopPrank();
@@ -88,6 +111,7 @@ contract HashedTimelockERC20Test is Test {
         vm.startPrank(receiver);
         bytes memory wrongPreimage = abi.encodePacked("wrong-secret");
 
+        console.log("Trying to claim with wrong preimage:", string(wrongPreimage));
         vm.expectRevert("Invalid preimage");
         htlc.claim(hashlock, wrongPreimage);
         vm.stopPrank();
@@ -102,6 +126,7 @@ contract HashedTimelockERC20Test is Test {
         // chưa đến unlockTime
         vm.startPrank(sender);
 
+        console.log("Trying refund before unlockTime =", block.timestamp + timelock);
         vm.expectRevert(); // revert generic vì require(block.timestamp >= locked.unlockTime)
         htlc.refund(hashlock);
 

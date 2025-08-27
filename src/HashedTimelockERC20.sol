@@ -41,8 +41,13 @@ contract HashedTimelockERC20 {
         });
 
         // yêu cầu người gửi chuyển tiền (bắt buộc phải gọi hàm approve trước)
-        require(IERC20(_tokenContract).transferFrom(msg.sender, address(this), _amount), "transfer failed");
-        emit LogLockCreated(_hashlock, msg.sender, _receiver, _tokenContract, _amount);
+        // require(IERC20(_tokenContract).transferFrom(msg.sender, address(this), _amount), "transfer failed");
+        uint256 before = IERC20(_tokenContract).balanceOf(address(this));
+        IERC20(_tokenContract).transferFrom(msg.sender, address(this), _amount);
+        uint256 received = IERC20(_tokenContract).balanceOf(address(this)) - before;
+        require(received > 0, "zero received");
+        locks[_hashlock].amount = received;
+        emit LogLockCreated(_hashlock, msg.sender, _receiver, _tokenContract, received);
 
         return _hashlock;
     }

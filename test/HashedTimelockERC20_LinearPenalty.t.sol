@@ -18,7 +18,6 @@ contract HashedTimelockERC20_LinearPenaltyTest is Test {
     uint256 constant DEPOSIT = 1 ether;
     uint256 constant TIMELOCK = 1 days;
     uint256 constant TIMEBASED = 12 hours;
-    uint256 constant PENALTY_INTERVAL = 1 hours;
     uint256 constant DEPOSIT_WINDOW = 1 hours;
 
     bytes32 hashlock;
@@ -43,9 +42,7 @@ contract HashedTimelockERC20_LinearPenaltyTest is Test {
         token.approve(address(lockContract), AMOUNT);
 
         // create lock
-        lockContract.createLock(
-            bob, address(token), AMOUNT, hashlock, TIMELOCK, TIMEBASED, PENALTY_INTERVAL, DEPOSIT, DEPOSIT_WINDOW
-        );
+        lockContract.createLock(bob, address(token), AMOUNT, hashlock, TIMELOCK, TIMEBASED, DEPOSIT, DEPOSIT_WINDOW);
         vm.stopPrank();
     }
 
@@ -126,9 +123,7 @@ contract HashedTimelockERC20_LinearPenaltyTest is Test {
 
         vm.startPrank(alice);
         token.approve(address(lockContract), AMOUNT);
-        lockContract.createLock(
-            bob, address(token), AMOUNT, hashlock, TIMELOCK, TIMEBASED, PENALTY_INTERVAL, DEPOSIT, DEPOSIT_WINDOW
-        );
+        lockContract.createLock(bob, address(token), AMOUNT, hashlock, TIMELOCK, TIMEBASED, DEPOSIT, DEPOSIT_WINDOW);
         vm.stopPrank();
 
         // warp past deposit window

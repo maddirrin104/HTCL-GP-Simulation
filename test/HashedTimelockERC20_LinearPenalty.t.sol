@@ -54,6 +54,9 @@ contract HashedTimelockERC20_LinearPenaltyTest is Test {
         // claim immediately (before unlockTime - timeBased)
         lockContract.claim(hashlock, preimage);
 
+        console.log("Bob token balance:", token.balanceOf(bob));
+        console.log("Bob ETH balance:", bob.balance);
+
         // Bob should receive all tokens
         assertEq(token.balanceOf(bob), AMOUNT);
         // Deposit refunded fully (since penalty=0)
@@ -70,6 +73,9 @@ contract HashedTimelockERC20_LinearPenaltyTest is Test {
         vm.warp(block.timestamp + TIMELOCK - TIMEBASED);
 
         lockContract.claim(hashlock, preimage);
+
+        console.log("Bob token balance:", token.balanceOf(bob));
+        console.log("Bob ETH balance:", bob.balance);
 
         // Penalty likely = 0 (rounding down)
         assertEq(token.balanceOf(bob), AMOUNT);
@@ -93,6 +99,10 @@ contract HashedTimelockERC20_LinearPenaltyTest is Test {
         // Penalty should be >0 and < deposit
         uint256 balAliceAfter = alice.balance;
         uint256 balBobAfter = bob.balance;
+
+        console.log("Penalty paid to Alice:", balAliceAfter - balAliceBefore);
+        console.log("Bob deposit refunded:", balBobAfter - balBobBefore);
+
         assertGt(balAliceAfter, balAliceBefore);
         assertLt(balAliceAfter - balAliceBefore, DEPOSIT);
         assertEq(balBobAfter + balAliceAfter, balAliceBefore + balBobBefore + DEPOSIT);
@@ -110,6 +120,9 @@ contract HashedTimelockERC20_LinearPenaltyTest is Test {
         lockContract.claim(hashlock, preimage);
 
         uint256 balAliceAfter = alice.balance;
+
+        console.log("Penalty ~ deposit:", balAliceAfter - balAliceBefore);
+
         // Penalty almost = deposit
         assertApproxEqAbs(balAliceAfter - balAliceBefore, DEPOSIT, 1e14);
         vm.stopPrank();
@@ -130,7 +143,13 @@ contract HashedTimelockERC20_LinearPenaltyTest is Test {
         vm.warp(block.timestamp + DEPOSIT_WINDOW + 1);
 
         vm.startPrank(alice);
+
+        uint256 balAliceBefore = token.balanceOf(alice);
+        vm.startPrank(alice);
         lockContract.refund(hashlock);
+        uint256 balAliceAfter = token.balanceOf(alice);
+
+        console.log("Alice refunded tokens:", balAliceAfter - balAliceBefore);
         assertEq(token.balanceOf(alice), AMOUNT); // Alice got tokens back
         vm.stopPrank();
     }
@@ -140,6 +159,7 @@ contract HashedTimelockERC20_LinearPenaltyTest is Test {
         vm.startPrank(bob);
         vm.expectRevert("Incorrect deposit amount");
         lockContract.confirmParticipation{value: DEPOSIT - 1}(hashlock);
+        console.log("Revert triggered as expected when Bob sends wrong deposit");
         vm.stopPrank();
     }
 }

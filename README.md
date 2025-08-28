@@ -7,7 +7,7 @@ Tuy nhiên, các phân tích sâu hơn đã chỉ ra rằng **HTLC-GP** vẫn c�
 
 ---
 
-# HTLC - Linear Griefing Penalty
+# HTLC - Griefing Linear Penalty
 
 Phương pháp này là một biến thể của **HTLC-GP (Hashed Timelock Contract with Griefing Penalty)**.  
 Trong HTLC-GP truyền thống, phía người nhận (Bob) phải gửi một khoản **đặt cọc (deposit)** để ngăn chặn việc tham gia không nghiêm túc và gây tốn phí cho người gửi (Alice). Tuy nhiên, cơ chế này đôi khi tạo ra chi phí tấn công không cân đối.  

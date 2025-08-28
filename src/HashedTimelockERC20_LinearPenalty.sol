@@ -14,7 +14,6 @@ contract HashedTimelockERC20_LinearPenalty is ReentrancyGuard {
         uint256 amount;
         uint256 unlockTime;
         uint256 timeBased;
-        uint256 penaltyInterval;
         uint256 depositRequired;
         uint256 depositPaid;
         uint256 depositWindowEnd;
@@ -33,7 +32,6 @@ contract HashedTimelockERC20_LinearPenalty is ReentrancyGuard {
         uint256 amount,
         uint256 unlockTime,
         uint256 timeBased,
-        uint256 penaltyInterval,
         uint256 depositRequired,
         uint256 depositWindowEnd
     );
@@ -49,14 +47,10 @@ contract HashedTimelockERC20_LinearPenalty is ReentrancyGuard {
         bytes32 _hashlock,
         uint256 _timelock,
         uint256 _timeBased,
-        uint256 _penaltyInterval,
         uint256 _depositRequired,
         uint256 _depositWindow
     ) external nonReentrant returns (bytes32 lockId) {
         require(_timeBased > 0 && _timeBased <= _timelock, "Invalid timeBased");
-        require(_penaltyInterval > 0 && _penaltyInterval <= _timeBased, "Invalid penaltyInterval");
-        uint256 totalIntervals = _timeBased / _penaltyInterval;
-        require(totalIntervals >= 1, "Invalid totalIntervals");
         require(_receiver != address(0), "Invalid receiver");
         require(_tokenContract != address(0), "Invalid token");
         require(_amount > 0, "Amount must be > 0");
@@ -72,7 +66,6 @@ contract HashedTimelockERC20_LinearPenalty is ReentrancyGuard {
             amount: _amount,
             unlockTime: _unlockTime,
             timeBased: _timeBased,
-            penaltyInterval: _penaltyInterval,
             depositRequired: _depositRequired,
             depositPaid: 0,
             depositWindowEnd: _depositWindowEnd,
@@ -92,7 +85,6 @@ contract HashedTimelockERC20_LinearPenalty is ReentrancyGuard {
             _amount,
             _unlockTime,
             _timeBased,
-            _penaltyInterval,
             _depositRequired,
             _depositWindowEnd
         );

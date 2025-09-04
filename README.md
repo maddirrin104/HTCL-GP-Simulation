@@ -7,7 +7,7 @@ Tuy nhiên, các phân tích sâu hơn đã chỉ ra rằng **HTLC-GP** vẫn c�
 
 ---
 
-# HTLC - Griefing Linear Penalty
+# HTLC - Linear Griefing Penalty
 
 Phương pháp này là một biến thể của **HTLC-GP (Hashed Timelock Contract with Griefing Penalty)**.  
 Trong HTLC-GP truyền thống, phía người nhận (Bob) phải gửi một khoản **đặt cọc (deposit)** để ngăn chặn việc tham gia không nghiêm túc và gây tốn phí cho người gửi (Alice). Tuy nhiên, cơ chế này đôi khi tạo ra chi phí tấn công không cân đối.  
@@ -75,11 +75,26 @@ $ forge build
 ```
 
 ### Test
-
+#### Chạy toàn bộ file test
 ```shell
 $ forge test
 ```
-
+#### Chạy tất cả test trong một file cụ thể
+```shell
+$ forge test --match-path test/MyContract.t.sol
+```
+#### Chạy test theo tên function
+```shell
+$ forge test --match-path test/MyContract.t.sol --match-test testFunctionName
+```
+#### Chạy nhiều file bằng cách liệt kê
+```shell
+$ forge test --match-path 'test/HTLC.t.sol' --match-path 'test/Token.t.sol'
+```
+#### Chạy nhiều file bằng cách dùng wildcard
+```shell
+$ forge test --match-path 'test/*.t.sol'
+``` 
 ### Format
 
 ```shell

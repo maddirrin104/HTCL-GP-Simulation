@@ -40,7 +40,7 @@ contract HashedTimelockERC20 {
             refunded: false
         });
 
-        // yêu cầu người gửi chuyển tiền (bắt buộc phải gọi hàm approve trước)
+        //sender call approve()
         // require(IERC20(_tokenContract).transferFrom(msg.sender, address(this), _amount), "transfer failed");
         uint256 before = IERC20(_tokenContract).balanceOf(address(this));
         IERC20(_tokenContract).transferFrom(msg.sender, address(this), _amount);

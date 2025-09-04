@@ -26,16 +26,15 @@ contract HashedTimelockERC20_GPz_Test is Test {
         htlc = new HashedTimelockERC20_GPz();
         token = new TestToken();
 
-        // cấp token cho Alice
         token.transfer(Alice, 1000 ether);
-
-        // hashlock cho preimage
         hashlock = sha256(preimage);
+
+        console.log("Setup complete. Alice token:", token.balanceOf(Alice));
     }
 
     /// @dev Bob deposit đúng, claim thành công → mất ζ
     function testBobDepositsAndClaimsWithZeta() public {
-        // Lưu token balance của Alice trước khi tạo lock
+        console.log("=== testBobDepositsAndClaimsWithZeta START ===");
         uint256 aliceTokenBefore = token.balanceOf(Alice);
 
         vm.startPrank(Alice);
@@ -43,108 +42,130 @@ contract HashedTimelockERC20_GPz_Test is Test {
         bytes32 lockId =
             htlc.createLock(Bob, address(token), amount, hashlock, timelock, depositRequired, zeta, depositWindow);
         vm.stopPrank();
+        console.log("Lock created:", uint256(lockId));
 
-        // Bob deposit đủ
-        vm.deal(Bob, 1 ether);
+        vm.deal(Bob, depositRequired);
         vm.prank(Bob);
         htlc.confirmParticipation{value: depositRequired}(lockId);
+        console.log("Bob deposited:", depositRequired);
 
-        // Bob claim
         uint256 bobBalanceBefore = Bob.balance;
         uint256 aliceBalanceBefore = Alice.balance;
 
         vm.prank(Bob);
         htlc.claim(lockId, preimage);
+        console.log("Bob claimed with preimage");
 
-        // Kiểm tra: Bob chỉ nhận lại deposit - ζ
+        console.log("Bob balance:", Bob.balance, "Alice balance:", Alice.balance);
+        console.log("Alice token:", token.balanceOf(Alice), "Bob token:", token.balanceOf(Bob));
+
         assertEq(Bob.balance, bobBalanceBefore + (depositRequired - zeta));
-
-        // Alice giữ lại ζ
         assertEq(Alice.balance, aliceBalanceBefore);
-
-        // Alice bị giảm token
         assertEq(token.balanceOf(Alice), aliceTokenBefore - amount);
-
-        // Bob nhận token
         assertEq(token.balanceOf(Bob), amount);
+
+        console.log("=== testBobDepositsAndClaimsWithZeta END ===");
     }
 
     /// @dev Bob không claim → Alice lấy lại token + deposit
     function testBobNoClaimAliceGetsCompensation() public {
+        console.log("=== testBobNoClaimAliceGetsCompensation START ===");
+
         vm.startPrank(Alice);
         token.approve(address(htlc), amount);
         bytes32 lockId =
             htlc.createLock(Bob, address(token), amount, hashlock, timelock, depositRequired, zeta, depositWindow);
         vm.stopPrank();
+        console.log("Lock created:", uint256(lockId));
 
         vm.deal(Bob, depositRequired);
         vm.prank(Bob);
         htlc.confirmParticipation{value: depositRequired}(lockId);
+        console.log("Bob deposited:", depositRequired);
 
-        // Fast forward qua unlockTime
         vm.warp(block.timestamp + timelock + 1);
+        console.log("Time advanced past timelock");
 
-        // Alice refund
         uint256 aliceEthBefore = Alice.balance;
         uint256 aliceTokenBefore = token.balanceOf(Alice);
 
         vm.prank(Alice);
         htlc.refund(lockId);
+        console.log("Alice refunded");
 
-        // Alice nhận lại token
+        console.log("Alice ETH:", Alice.balance - aliceEthBefore);
+        console.log("Alice token:", token.balanceOf(Alice) - aliceTokenBefore);
+
         assertEq(token.balanceOf(Alice), aliceTokenBefore + amount);
-
-        // Alice cũng nhận toàn bộ deposit (bao gồm ζ)
         assertEq(Alice.balance, depositRequired);
+
+        console.log("=== testBobNoClaimAliceGetsCompensation END ===");
     }
 
     /// @dev Claim mà chưa deposit → revert
     function testClaimWithoutDepositReverts() public {
+        console.log("=== testClaimWithoutDepositReverts START ===");
+
         vm.startPrank(Alice);
         token.approve(address(htlc), amount);
         bytes32 lockId =
             htlc.createLock(Bob, address(token), amount, hashlock, timelock, depositRequired, zeta, depositWindow);
         vm.stopPrank();
+        console.log("Lock created:", uint256(lockId));
 
         vm.prank(Bob);
         vm.expectRevert("No deposit");
         htlc.claim(lockId, preimage);
+
+        console.log("Claim without deposit reverted as expected");
+        console.log("=== testClaimWithoutDepositReverts END ===");
     }
 
     /// @dev Deposit sai số tiền → revert
     function testWrongDepositAmountReverts() public {
+        console.log("=== testWrongDepositAmountReverts START ===");
+
         vm.startPrank(Alice);
         token.approve(address(htlc), amount);
         bytes32 lockId =
             htlc.createLock(Bob, address(token), amount, hashlock, timelock, depositRequired, zeta, depositWindow);
         vm.stopPrank();
+        console.log("Lock created:", uint256(lockId));
 
         vm.deal(Bob, depositRequired + 1);
         vm.prank(Bob);
         vm.expectRevert("Incorrect ETH amount");
         htlc.confirmParticipation{value: depositRequired + 1}(lockId);
+
+        console.log("Wrong deposit reverted as expected");
+        console.log("=== testWrongDepositAmountReverts END ===");
     }
 
     /// @dev Chỉ Bob được claim, chỉ Alice được refund
     function testOnlyRolesCanAct() public {
+        console.log("=== testOnlyRolesCanAct START ===");
+
         vm.startPrank(Alice);
         token.approve(address(htlc), amount);
         bytes32 lockId =
             htlc.createLock(Bob, address(token), amount, hashlock, timelock, depositRequired, zeta, depositWindow);
         vm.stopPrank();
+        console.log("Lock created:", uint256(lockId));
 
-        // Một người khác cố claim
         address Mallory = address(0x123);
         vm.deal(Mallory, 10 ether);
 
         vm.prank(Mallory);
         vm.expectRevert("Only receiver");
         htlc.claim(lockId, preimage);
+        console.log("Unauthorized claim reverted as expected");
 
-        // Một người khác cố refund
         vm.warp(block.timestamp + timelock + 1);
         vm.prank(Mallory);
         vm.expectRevert("Only sender");
         htlc.refund(lockId);
+        console.log("Unauthorized refund reverted as expected");
+
+        console.log("=== testOnlyRolesCanAct END ===");
     }
 }

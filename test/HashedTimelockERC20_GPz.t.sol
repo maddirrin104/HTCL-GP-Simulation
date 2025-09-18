@@ -32,6 +32,8 @@ contract HashedTimelockERC20_GPz_Test is Test {
         console.log("Setup complete. Alice token:", token.balanceOf(Alice));
     }
 
+    /// --- Test cases ---
+
     /// @dev Bob deposit đúng, claim thành công → mất ζ
     function testBobDepositsAndClaimsWithZeta() public {
         console.log("=== testBobDepositsAndClaimsWithZeta START ===");

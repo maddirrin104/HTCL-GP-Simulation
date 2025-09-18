@@ -23,8 +23,14 @@ contract MPHTLC {
     mapping(bytes32 => LockContract) public contracts;
 
     // Sự kiện phát ra khi tạo mới một hợp đồng HTLC
-    event HTLCNew(bytes32 indexed contractId, address indexed sender, address indexed receiver,
-                 uint256 amount, bytes32 hashlock, uint256 timelock);
+    event HTLCNew(
+        bytes32 indexed contractId,
+        address indexed sender,
+        address indexed receiver,
+        uint256 amount,
+        bytes32 hashlock,
+        uint256 timelock
+    );
     // Sự kiện khi rút tiền thành công (tiết lộ preimage)
     event HTLCWithdraw(bytes32 indexed contractId, bytes32 preimage);
     // Sự kiện khi hoàn tiền thành công
@@ -42,9 +48,11 @@ contract MPHTLC {
      * @return contractId Mã ID duy nhất của hợp đồng HTLC mới.
      */
     function newContract(address payable _receiver, bytes32 _hashlock, uint256 _timelock)
-        external payable returns (bytes32 contractId)
+        external
+        payable
+        returns (bytes32 contractId)
     {
-        require(msg.value > 0, "No funds sent");  
+        require(msg.value > 0, "No funds sent");
         require(_timelock > block.timestamp, "timelock must be in the future");
         // Tạo ID duy nhất cho hợp đồng khóa này
         contractId = sha256(abi.encodePacked(msg.sender, _receiver, msg.value, _hashlock, _timelock));
@@ -72,14 +80,15 @@ contract MPHTLC {
      * @return success Trả về true nếu rút tiền thành công.
      */
     function withdraw(bytes32 _contractId, bytes32 _preimage, uint8 _v, bytes32 _r, bytes32 _s)
-        external returns (bool success)
+        external
+        returns (bool success)
     {
         LockContract storage c = contracts[_contractId];
-        require(c.sender != address(0), "Contract not found");              // Hợp đồng phải tồn tại
-        require(msg.sender == c.receiver, "Only receiver can withdraw");    // Chỉ cho phép đúng người nhận rút
-        require(!c.withdrawn, "Already withdrawn");                        // Chưa từng được rút trước đó
-        require(!c.refunded, "Already refunded");                          // Chưa hoàn tiền trước đó
-        require(block.timestamp < c.timelock, "Timelock expired");         // Còn trong thời hạn cho phép
+        require(c.sender != address(0), "Contract not found"); // Hợp đồng phải tồn tại
+        require(msg.sender == c.receiver, "Only receiver can withdraw"); // Chỉ cho phép đúng người nhận rút
+        require(!c.withdrawn, "Already withdrawn"); // Chưa từng được rút trước đó
+        require(!c.refunded, "Already refunded"); // Chưa hoàn tiền trước đó
+        require(block.timestamp < c.timelock, "Timelock expired"); // Còn trong thời hạn cho phép
         // Kiểm tra preimage có khớp hashlock không
         require(c.hashlock == sha256(abi.encodePacked(_preimage)), "Invalid preimage");
         // Xác thực chữ ký ngưỡng: phải khớp với địa chỉ thresholdSigner đã lưu

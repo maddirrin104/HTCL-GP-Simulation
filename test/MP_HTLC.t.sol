@@ -6,40 +6,39 @@ import "forge-std/console.sol";
 import "../src/MP_HTLC.sol";
 
 contract MPHTLCTest is Test {
-    MPHTLC ethContract;    // giả lập hợp đồng trên Ethereum
-    MPHTLC polyContract;   // giả lập hợp đồng trên Polygon
+    MPHTLC ethContract; // giả lập hợp đồng trên Ethereum
+    MPHTLC polyContract; // giả lập hợp đồng trên Polygon
 
     address payable alice; // Alice sẽ nhận trên Polygon và gửi trên Ethereum
-    address payable bob;   // Bob sẽ nhận trên Ethereum và gửi trên Polygon
+    address payable bob; // Bob sẽ nhận trên Ethereum và gửi trên Polygon
 
     uint256 thresholdPrivKey; // private key giả lập của nhóm chữ ký ngưỡng
-    address thresholdAddr;    // địa chỉ công khai tương ứng (thresholdSigner)
+    address thresholdAddr; // địa chỉ công khai tương ứng (thresholdSigner)
 
-    bytes32 secret;      // preimage
-    bytes32 hashlock;    // sha256(preimage)
+    bytes32 secret; // preimage
+    bytes32 hashlock; // sha256(preimage)
     uint256 timelockEth; // T_Eth
-    uint256 timelockPoly;// T_Poly (> T_Eth)
+    uint256 timelockPoly; // T_Poly (> T_Eth)
 
     function setUp() public {
         console.log("=== SETUP ===");
         alice = payable(vm.addr(1));
-        bob   = payable(vm.addr(2));
+        bob = payable(vm.addr(2));
 
         // Khởi tạo key của 'nhóm ngưỡng' (demo)
-        thresholdPrivKey =
-            0xABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789;
+        thresholdPrivKey = 0xABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789;
         thresholdAddr = vm.addr(thresholdPrivKey);
 
         // Triển khai 2 hợp đồng với cùng thresholdSigner
-        ethContract  = new MPHTLC(thresholdAddr);
+        ethContract = new MPHTLC(thresholdAddr);
         polyContract = new MPHTLC(thresholdAddr);
 
         // Cấp tiền ban đầu cho 2 ví
         vm.deal(alice, 1 ether);
-        vm.deal(bob,   1 ether);
+        vm.deal(bob, 1 ether);
 
         // Tạo preimage & hashlock
-        secret   = bytes32("my secret preimage");
+        secret = bytes32("my secret preimage");
         hashlock = sha256(abi.encodePacked(secret));
 
         console.log("Preimage (secret):");
@@ -48,7 +47,7 @@ contract MPHTLCTest is Test {
         console.logBytes32(hashlock);
 
         // Thiết lập timelock: Polygon dài hơn Ethereum
-        timelockEth  = block.timestamp + 100;
+        timelockEth = block.timestamp + 100;
         timelockPoly = block.timestamp + 200;
 
         console.log("Current block.timestamp:");
@@ -62,10 +61,8 @@ contract MPHTLCTest is Test {
 
     // Helper: in trạng thái 1 hợp đồng theo contractId
     function _logContractState(MPHTLC c, bytes32 id, string memory label) internal view {
-        (
-            address s, address r, uint256 amt, bytes32 h, uint256 t,
-            bool withdrawn, bool refunded, bytes32 pre
-        ) = c.contracts(id);
+        (address s, address r, uint256 amt, bytes32 h, uint256 t, bool withdrawn, bool refunded, bytes32 pre) =
+            c.contracts(id);
 
         console.log(string(abi.encodePacked("== STATE: ", label, " ==")));
         console.log("sender:");
@@ -127,11 +124,10 @@ contract MPHTLCTest is Test {
 
         // Assertions sau lock
         {
-            (
-                address s, address r, uint256 amt, , uint256 t,
-                bool w, bool f, 
-            ) = ethContract.contracts(idEth);
-            console.log("ASSERT (ETH): sender==alice, receiver==bob, amount==0.5e, timelock==timelockEth, !withdrawn, !refunded");
+            (address s, address r, uint256 amt,, uint256 t, bool w, bool f,) = ethContract.contracts(idEth);
+            console.log(
+                "ASSERT (ETH): sender==alice, receiver==bob, amount==0.5e, timelock==timelockEth, !withdrawn, !refunded"
+            );
             console.log("sender:");
             console.logAddress(s);
             console.log("receiver:");
@@ -146,7 +142,7 @@ contract MPHTLCTest is Test {
             console.logBool(f);
 
             assertEq(s, alice, "ETH: sender mismatch");
-            assertEq(r, bob,   "ETH: receiver mismatch");
+            assertEq(r, bob, "ETH: receiver mismatch");
             assertEq(amt, 0.5 ether, "ETH: amount mismatch");
             assertEq(t, timelockEth, "ETH: timelock mismatch");
             assertFalse(w, "ETH: should not be withdrawn");
@@ -192,24 +188,26 @@ contract MPHTLCTest is Test {
 
         // Kiểm tra preimage đã lưu và cờ trạng thái
         {
-            ( , , , , , bool wEth, bool fEth, bytes32 preEth) = ethContract.contracts(idEth);
-            ( , , , , , bool wPoly, bool fPoly, bytes32 prePoly) = polyContract.contracts(idPoly);
+            (,,,,, bool wEth, bool fEth, bytes32 preEth) = ethContract.contracts(idEth);
+            (,,,,, bool wPoly, bool fPoly, bytes32 prePoly) = polyContract.contracts(idPoly);
 
             console.log("ASSERT post-redeem flags & stored preimage");
             console.log("ETH withdrawn/refunded:");
-            console.logBool(wEth); console.logBool(fEth);
+            console.logBool(wEth);
+            console.logBool(fEth);
             console.log("POLY withdrawn/refunded:");
-            console.logBool(wPoly); console.logBool(fPoly);
+            console.logBool(wPoly);
+            console.logBool(fPoly);
             console.log("stored preimage (ETH):");
             console.logBytes32(preEth);
             console.log("stored preimage (POLY):");
             console.logBytes32(prePoly);
 
-            assertTrue(wEth,  "ETH: should be withdrawn");
+            assertTrue(wEth, "ETH: should be withdrawn");
             assertFalse(fEth, "ETH: should not be refunded");
             assertTrue(wPoly, "POLY: should be withdrawn");
-            assertFalse(fPoly,"POLY: should not be refunded");
-            assertEq(preEth,  secret, "ETH: stored preimage mismatch");
+            assertFalse(fPoly, "POLY: should not be refunded");
+            assertEq(preEth, secret, "ETH: stored preimage mismatch");
             assertEq(prePoly, secret, "POLY: stored preimage mismatch");
             console.log("-> PASS: flags & preimage OK\n");
         }
@@ -222,7 +220,7 @@ contract MPHTLCTest is Test {
         console.logUint(bob.balance);
 
         assertEq(alice.balance, 1 ether, "Alice final balance incorrect");
-        assertEq(bob.balance,   1 ether, "Bob final balance incorrect");
+        assertEq(bob.balance, 1 ether, "Bob final balance incorrect");
         console.log("-> PASS: final balances OK\n");
     }
 
@@ -274,19 +272,21 @@ contract MPHTLCTest is Test {
 
         // 5) Kiểm tra cờ và số dư
         {
-            ( , , , , , bool wEth, bool fEth, ) = ethContract.contracts(idEth);
-            ( , , , , , bool wPoly, bool fPoly, ) = polyContract.contracts(idPoly);
+            (,,,,, bool wEth, bool fEth,) = ethContract.contracts(idEth);
+            (,,,,, bool wPoly, bool fPoly,) = polyContract.contracts(idPoly);
 
             console.log("ASSERT post-refund flags");
             console.log("ETH withdrawn/refunded:");
-            console.logBool(wEth); console.logBool(fEth);
+            console.logBool(wEth);
+            console.logBool(fEth);
             console.log("POLY withdrawn/refunded:");
-            console.logBool(wPoly); console.logBool(fPoly);
+            console.logBool(wPoly);
+            console.logBool(fPoly);
 
-            assertFalse(wEth,  "ETH: should not be withdrawn");
-            assertTrue(fEth,   "ETH: should be refunded");
+            assertFalse(wEth, "ETH: should not be withdrawn");
+            assertTrue(fEth, "ETH: should be refunded");
             assertFalse(wPoly, "POLY: should not be withdrawn");
-            assertTrue(fPoly,  "POLY: should be refunded");
+            assertTrue(fPoly, "POLY: should be refunded");
             console.log("-> PASS: refund flags OK\n");
         }
 
@@ -297,7 +297,7 @@ contract MPHTLCTest is Test {
         console.logUint(bob.balance);
 
         assertEq(alice.balance, 1 ether, "Alice should have original balance back");
-        assertEq(bob.balance,   1 ether, "Bob should have original balance back");
+        assertEq(bob.balance, 1 ether, "Bob should have original balance back");
         console.log("-> PASS: final balances after refund OK\n");
     }
 }
